@@ -10,7 +10,7 @@ class DnaSeq:
             self.seq[2:],
             self.compliment,
             self.compliment[1:],
-            self.compliment[2:],
+            self.compliment[2:]
         ]
 
     def get_compliment(self):
@@ -24,6 +24,8 @@ class DnaSeq:
         compliment = ""
         for nucleotide in self.seq:
             compliment += nuc_pairs[nucleotide]
+
+        compliment = compliment[::-1]
 
         return compliment
 
@@ -41,7 +43,7 @@ def find_codons(input_seq):
     return codon_list
 
 
-def translate(self):
+def translate(codon_list):
 
     dna_codon = {
         "TTT": "F",
@@ -54,11 +56,11 @@ def translate(self):
         "TCG": "S",
         "TAT": "Y",
         "TAC": "Y",
-        "TAA": "Stop",
-        "TAG": "Stop",
+        "TAA": "stop",
+        "TAG": "stop",
         "TGT": "C",
         "TGC": "C",
-        "TGA": "Stop",
+        "TGA": "stop",
         "TGG": "W",
         "CTT": "L",
         "CTC": "L",
@@ -110,21 +112,45 @@ def translate(self):
         "GGG": "G"
     }
 
-    prot_seq = ""
+    prot_seq = []
     for codon in codon_list:
-        prot_seq += dna_codon[codon]
+        prot_seq.append(dna_codon[codon])
 
     return prot_seq
 
-# prot_strings = []
-# for amino_acid in range(len(prot_seq)):
-#    if prot_seq[amino_acid] == "M":
-#        prot_string = prot_seq[amino_acid, prot_seq.find("Stop")]
-#        prot_strings.append(prot_string)
-#
-# return prot_strings
+
+def protein_strings(prot_seq):
+    prot_strings = []
+    for amino_acid in range(len(prot_seq)):
+        if prot_seq[amino_acid] == "M":
+            prot_string = ''
+            for aa in range(amino_acid, len(prot_seq)):
+                # print(prot_seq[aa])
+                if prot_seq[aa] != "stop":
+                    prot_string += prot_seq[aa]
+                else:
+                    prot_strings.append(prot_string)
+                    break
+    return prot_strings
 
 
-sequence = DnaSeq("1a", "TGACTGACTGAC")
-print(sequence.compliment)
-print(find_codons(sequence.compliment))
+def get_sequence(input_file):
+    file = open(input_file)
+    seq_obj = DnaSeq(file.readline().strip(), file.readline().strip())
+    file.close()
+
+    viable_strings = ''
+    for orf in seq_obj.orfs:
+        codons = find_codons(orf)
+        protein_seq = translate(codons)
+        strings = protein_strings(protein_seq)
+        for string in strings:
+            viable_strings += str(string) + '\n'
+
+    return viable_strings
+
+
+solution = get_sequence("orf_sample.txt")
+solution_file = open("solution_file.txt", "w")
+solution_file.write(solution)
+print(solution)
