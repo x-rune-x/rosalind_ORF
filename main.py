@@ -131,26 +131,40 @@ def protein_strings(prot_seq):
                 else:
                     prot_strings.append(prot_string)
                     break
+
+    # Problem calls for distinct protein strings
+    prot_strings = list(dict.fromkeys(prot_strings))
     return prot_strings
 
 
 def get_sequence(input_file):
     file = open(input_file)
-    seq_obj = DnaSeq(file.readline().strip(), file.readline().strip())
+    fasta_id = file.readline().strip()
+    lines = file.readlines()
+    fasta_seq = ''
+    for line in lines:
+        fasta_seq += line.strip()
+    seq_obj = DnaSeq(fasta_id, fasta_seq)
     file.close()
 
-    viable_strings = ''
+    viable_strings = []
     for orf in seq_obj.orfs:
         codons = find_codons(orf)
         protein_seq = translate(codons)
         strings = protein_strings(protein_seq)
         for string in strings:
-            viable_strings += str(string) + '\n'
+            # Separate layer of removal of duplicates.
+            if string not in viable_strings:
+                viable_strings.append(string)
 
-    return viable_strings
+    string_output = ''
+    for vs in viable_strings:
+        string_output += vs + '\n'
+
+    return string_output
 
 
-solution = get_sequence("orf_sample.txt")
+solution = get_sequence("rosalind_orf(3).txt")
 solution_file = open("solution_file.txt", "w")
 solution_file.write(solution)
 print(solution)
